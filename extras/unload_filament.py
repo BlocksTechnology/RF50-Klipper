@@ -5,7 +5,7 @@ from functools import partial
 class UnloadFilamentError(Exception):
     """Raised when there is an error unloading filament"""
 
-    def __init__(self, message, errors):
+    def __init__(self, message, errors: typing.Optional[str]):
         super(UnloadFilamentError, self).__init__(message)
         self.errors = errors
 
@@ -23,7 +23,7 @@ class UnloadFilament:
         self.cutter_object = None
         self.filament_flow_sensor_object = self.filament_flow_sensor_name = None
         self.filament_switch_sensor_object = self.filament_switch_sensor_name = None
-        self.unload_started: bool = None
+        self.unload_started = None
         self.unextrude_count: int = 0
         self.travel_speed = None
 
@@ -50,8 +50,8 @@ class UnloadFilament:
 
         self.park = config.getfloatlist("park_xy", None, count=2)
 
-        self.extrude_speed = config.getfloat(
-            "extruder_speed", default=50.0, minval=10.0, maxval=100.0
+        self.unload_speed = config.getfloat(
+            "unload_speed", default=50.0, minval=10.0, maxval=100.0
         )
 
         self.cutter_name = config.get("cutter_sensor_name", None)
@@ -170,10 +170,12 @@ class UnloadFilament:
 
         self.toolhead.wait_moves()
         self.gcode.respond_info("Cooling down extruder")
+        
+        self.restore_state()
+
         if self.custom_boundary_object is not None:
             self.custom_boundary_object.set_custom_boundary()
 
-        self.restore_state()
         self.heat_and_wait(0, wait=False)
 
         if self.idex:
@@ -192,13 +194,15 @@ class UnloadFilament:
         try:
             if self.timeout is not None:
                 if self.unextrude_count > self.timeout:
-                    self.reactor.update_timer(self.verify_switch_sensor_timer, self.reactor.NEVER)
+                    self.reactor.update_timer(
+                        self.verify_switch_sensor_timer, self.reactor.NEVER
+                    )
                     completion = self.reactor.register_callback(self.unload_end)
                     completion.wait()
                     return self.reactor.NEVER
                 self.unextrude_count += 1
-            self.move_extruder_mm(distance=-10, speed=self.extrude_speed, wait=False)
-            return eventtime + float((10 / self.extrude_speed))
+            self.move_extruder_mm(distance=-10, speed=self.unload_speed, wait=False)
+            return eventtime + float((10 / (self.unload_speed)))
 
         except Exception as e:
             raise UnloadFilamentError(
@@ -345,7 +349,7 @@ class UnloadFilament:
     def restore_state(self):
         """Restore gcode state and dual carriage state if the system is in IDEX configuration"""
         self.gcode.run_script_from_command(
-            "RESTORE_GCODE_STATE NAME=_UNLOAD_STATE MOVE=1 SPEED=100\nM400"
+            "RESTORE_GCODE_STATE NAME=_UNLOAD_STATE MOVE=1 MOVE_SPEED=100\nM400"
         )
         if self.idex:
             self.gcode.run_script_from_command(
@@ -367,7 +371,6 @@ class UnloadFilament:
             self.home_needed()
 
             self.save_state()
-            # self.reactor.register_callback(self.conditional_pause)
 
             self.disable_sensors()  # So not to pause the filament switch sensor when filament is taken out
             if self.idex:
@@ -418,13 +421,12 @@ class UnloadFilament:
                         self.verify_flow_sensor_timer, self.reactor.NOW
                     )
 
-            # if self.timeout is None:            
             if self.filament_switch_sensor_object is not None:
                 self.gcode.respond_info(
                     "[UNLOAD FILAMENT] Starting filament switch sensor unload verification in 10 seconds"
                 )
                 self.reactor.update_timer(
-                    self.verify_switch_sensor_timer, self.reactor.NOW + 5
+                    self.verify_switch_sensor_timer, self.reactor.NOW + 5.0
                 )
 
         except Exception as e:

@@ -61,8 +61,8 @@ class LoadFilament:
         self.travel_speed = config.getfloat(
             "travel_speed", default=50.0, minval=20.0, maxval=500.0
         )
-        self.extrude_speed = config.getfloat(
-            "extrude_speed", default=10.0, minval=5.0, maxval=100.0
+        self.load_speed = config.getfloat(
+            "load_speed", default=10.0, minval=5.0, maxval=100.0
         )
         self.purge_speed = config.getfloat(
             "purge_speed", default=5.0, minval=2.0, maxval=50.0
@@ -201,8 +201,8 @@ class LoadFilament:
                 return self.reactor.NEVER
             self.extrude_count += 1
 
-        self.move_extruder_mm(distance=10, speed=self.extrude_speed, wait=False)
-        return eventtime + float((10 / self.extrude_speed))
+        self.move_extruder_mm(distance=10, speed=self.load_speed, wait=False)
+        return eventtime + float((10 / self.load_speed))
 
     def purge_extrude(self, eventtime):
         if not self.load_started:
