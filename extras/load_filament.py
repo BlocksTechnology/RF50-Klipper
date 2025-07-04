@@ -363,8 +363,8 @@ class LoadFilament:
         eventtime = self.reactor.monotonic()
         extruder = self.toolhead.get_extruder()
         pheaters = self.printer.lookup_object("heaters")
-        pheaters.set_temperature(extruder.get_heater(), temp, False)
         extruder_heater = extruder.get_heater()
+        pheaters.set_temperature(extruder.get_heater(), temp, False)
         while not self.printer.is_shutdown() and wait:
             heater_temp, _ = extruder_heater.get_temp(eventtime)
             if heater_temp >= (temp - 5) and heater_temp <= (temp + 5):
