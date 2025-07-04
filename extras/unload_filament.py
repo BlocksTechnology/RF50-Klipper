@@ -18,7 +18,6 @@ class UnloadFilament:
         self.gcode = self.printer.lookup_object("gcode")
         self.custom_boundary_object = None
         self.min_event_systime = None
-        self.toolhead = None
         self.bucket_object = None
         self.cutter_object = None
         self.filament_flow_sensor_object = self.filament_flow_sensor_name = (
@@ -165,27 +164,23 @@ class UnloadFilament:
         )  # Restore extruder position
         self.gcode.run_script_from_command("M82\nM400")
         self.restore_state()
+
         if self.custom_boundary_object:
             self.custom_boundary_object.set_custom_boundary()
             self.custom_boundary_object.move_to_park()
 
-        logging.info("AFTER CUSTOM BOUNDARY OBJECT SET CUSTOM BOUNDARY")
+       
 
         self.gcode.respond_info("Cooling down extruder")
         self.heat_extruder(0, wait=False)
-        logging.info("AFTER SETTING EXTRUDER TEMPERATURE TO 0 ")
-
-        # THE CODE STOP HERE FOR SOME REASON!!!!!!!!!!!!!!!!!!!
 
         if self.idex:
             self.gcode.respond_info("Parking toolhead 0")
             self.gcode.run_script_from_command("T0 PARK\nM400")
 
-        logging.info("After the idex verification ")
         self.gcode.respond_info("[UNLOAD FILAMENT] Finished")
         self.unload_started = False
         self.printer.send_event("unload_filament:end")
-        logging.info("After gcode saying that unload finished")
         return self.reactor.NEVER
 
     def unextrude(self, eventtime):
@@ -284,20 +279,21 @@ class UnloadFilament:
             temp (float):
                 Target temperature in Celsius.
             wait (bool, optional):
-                Weather to wait or not for the temperature to reach the interval . Defaults to True
+                Whether to wait or not for the temperature to reach the interval . Defaults to True
         """
-        if not self.toolhead:
-            return
+        # if not self.toolhead:
+        #     return
         eventtime = self.reactor.monotonic()
         extruder = self.toolhead.get_extruder()
         pheaters = self.printer.lookup_object("heaters")
-        pheaters.set_temperature(extruder.get_heater(), temp, False)
         extruder_heater = extruder.get_heater()
-        while not (self.printer.is_shutdown() and wait):
+        pheaters.set_temperature(extruder_heater, temp, False)
+        while not self.printer.is_shutdown() and wait:
             heater_temp, _ = extruder_heater.get_temp(eventtime)
             if heater_temp >= (temp - 5) and heater_temp <= (temp + 5):
                 return
             eventtime = self.reactor.pause(eventtime + 1.0)
+        return
 
     def save_state(self) -> None:
         """Save gcode state and dual carriage state if the system is in IDEX configuration"""
