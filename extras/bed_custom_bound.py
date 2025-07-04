@@ -15,10 +15,14 @@ class BedCustomBound:
         # * Get module configs
         self.custom_boundary_x = None
         if config.getfloatlist("custom_boundary_x", None, count=2) is not None:
-            self.custom_boundary_x = config.getfloatlist("custom_boundary_x", count=2)
+            self.custom_boundary_x = config.getfloatlist(
+                "custom_boundary_x", count=2
+            )
         self.custom_boundary_y = None
         if config.getfloatlist("custom_boundary_y", None, count=2) is not None:
-            self.custom_boundary_y = config.getfloatlist("custom_boundary_y", count=2)
+            self.custom_boundary_y = config.getfloatlist(
+                "custom_boundary_y", count=2
+            )
         self.park = None
         if config.getfloatlist("park_xy", None, count=2) is not None:
             self.park = config.getfloatlist("park_xy", count=2)
@@ -48,15 +52,15 @@ class BedCustomBound:
         self.toolhead = self.printer.lookup_object("toolhead")
 
     def cmd_SET_CUSTOM_BOUNDARY(self, gcmd):
-        if self.toolhead is None:
+        if not self.toolhead:
             return
-        if self.custom_boundary_x is None or self.custom_boundary_y is None:
+        if not self.custom_boundary_x or not self.custom_boundary_y:
             return
 
         move_to_custom_pos = gcmd.get("MOVE_TO_PARK", False, parser=bool)
 
         self.set_custom_boundary()
-        if move_to_custom_pos and self.park is not None:
+        if move_to_custom_pos and self.park:
             self.toolhead.manual_move(
                 [self.park[0], self.park[1]],
                 self.travel_speed,
@@ -65,10 +69,10 @@ class BedCustomBound:
     def cmd_RESTORE_DEFAULT_BOUNDARY(self, gcmd):
         self.restore_default_boundary()
 
-    def restore_default_boundary(self):
-        if self.toolhead is None:
+    def restore_default_boundary(self, eventtime=None):
+        if not self.toolhead:
             return
-        if self.default_limits_x is None or self.default_limits_y is None:
+        if not self.default_limits_x or not self.default_limits_y:
             return
         self.gcode.respond_info(
             "[CUSTOM BED BOUNDARY] Restoring printer boundary limits."
@@ -83,15 +87,21 @@ class BedCustomBound:
             self.default_limits_y[1],
         )  # Y min , Y max
         self.current_boundary = "default"
+        return
 
-    def set_custom_boundary(self):
-        if self.toolhead is None:
+    def set_custom_boundary(self, eventtime=None):
+        if not self.toolhead:
             return
-        if self.custom_boundary_x is None or self.custom_boundary_y is None:
+        if not self.custom_boundary_x or not self.custom_boundary_y:
             return
-        self.gcode.respond_info("[CUSTOM BED BOUNDARY] Setting specified custom boundary.")
+        self.gcode.respond_info(
+            "[CUSTOM BED BOUNDARY] Setting specified custom boundary"
+        )
         kin = self.toolhead.get_kinematics()
-        self.default_limits_x, self.default_limits_y = kin.limits[0], kin.limits[1]
+        self.default_limits_x, self.default_limits_y = (
+            kin.limits[0],
+            kin.limits[1],
+        )
 
         kin.limits[0] = (
             self.custom_boundary_x[0],
@@ -102,15 +112,18 @@ class BedCustomBound:
             self.custom_boundary_y[1],
         )  # Y min , Y max
         self.current_boundary = "custom"
+        return
 
     def move_to_park(self):
-        if self.park is not None:
-            self.toolhead.manual_move([self.park[0], self.park[1]], self.travel_speed)
+        if self.park:
+            self.toolhead.manual_move(
+                [self.park[0], self.park[1]], self.travel_speed
+            )
 
     def check_boundary_limits(
-        self, position: typing.Tuple[float, float], type: str = "default"
+        self, position: typing.Tuple[float, float], bound_type: str = "default"
     ):
-        if self.toolhead is None or position is None:
+        if not self.toolhead or not position:
             return
 
         _limits = {
@@ -119,9 +132,9 @@ class BedCustomBound:
         }
 
         if (
-            type == "default"
-            and self.default_limits_x is not None
-            and self.default_limits_y is not None
+            bound_type == "default"
+            and self.default_limits_x
+            and self.default_limits_y
         ):
             min_limit_x, max_limit_x = (
                 self.default_limits_x[0],
@@ -132,14 +145,14 @@ class BedCustomBound:
                 self.default_limits_y[1],
             )
 
-        if type == "current":
+        if bound_type == "current":
             kin = self.toolhead.get_kinematics()
             min_limit_x, max_limit_x = kin.limits[0][0], kin.limits[0][1]
             min_limit_y, max_limit_y = kin.limits[1][0], kin.limits[1][1]
         if (
-            type == "custom"
-            and self.custom_boundary_x is not None
-            and self.custom_boundary_y is not None
+            bound_type == "custom"
+            and self.custom_boundary_x
+            and self.custom_boundary_y
         ):
             min_limit_x, max_limit_x = (
                 self.custom_boundary_x[0],
@@ -150,13 +163,11 @@ class BedCustomBound:
                 self.custom_boundary_y[1],
             )
 
-        if min_limit_x < position[0] or max_limit_x < position[0]: 
+        if min_limit_x < position[0] or max_limit_x < position[0]:
             _limits.update({"x": False})
-        
+
         if min_limit_y < position[1] or max_limit_y < position[1]:
             _limits.update({"y": False})
-            
-
 
         return _limits
 
