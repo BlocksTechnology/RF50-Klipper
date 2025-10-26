@@ -20,23 +20,21 @@ For the configurations to be updated
         ln -srf ~/RF50-Klipper/hardware/* config/config/
         ln -srf ~/RF50-Klipper/config/* config/config/
 
-It is also necessary to copy the printer and variables configuration files to the `~/printer_data/config` directory 
+It is also necessary to create symlinks for the printer and variables configuration files to the `~/printer_data/config` directory, these do not have the -s, they are hard linked, which makes the file on `~/RF50-Klipper/printer.cfg` and the one on `~/printer_data/config/printer.cfg` indistinguishable.
 
+        ln ~/RF50-Klipper/printer.cfg ~/printer_data/config/printer.cfg
+        ln ~/RF50-Klipper/variables.cfg ~/printer_data/config/variables.cfg
 
-        cp ~/RF50-Klipper/printer.cfg ~/printer_data/config/printer.cfg
-        cp ~/RF50-Klipper/variables.cfg ~/printer_data/config/variables.cfg
 
 
 Running the previous commands will create symlinks to all configuration files on the RF50-Klipper repo directory.
 To be able to update the configuration files we can also add a moonraker`[update_manager RF50-Klipper]` entry so that the files with a corresponding symlink can be updated via moonraker
-
 
         [update_manager RF50-Klipper]
         type: git_repo
         path: ~/RF50-Klipper
         origin: https://github.com/BlocksTechnology/RF50-Klipper.git
         managed_services: klipper
-
 
 
 
