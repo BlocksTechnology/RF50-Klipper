@@ -36,24 +36,16 @@ To be able to update the configuration files we can also add a moonraker`[update
         path: ~/RF50-Klipper
         origin: https://github.com/BlocksTechnology/RF50-Klipper.git
         managed_services: klipper
-        install_script: tools/pkglist.sh
 
 
-This permits updating the configuration files without needing to 
 
 
 
 # Flash Octopus Pro 
 
- This file contains common pin mappings for the BigTreeTech Octopus
- and Octopus Pro boards. To use this config, start by identifying the
- micro-controller on the board - it may be an STM32F446, STM32F429,
- or an STM32H723.  Select the appropriate micro-controller in "make
- menuconfig" and select "Enable low-level configuration options". For
- STM32F446 boards the firmware should be compiled with a "32KiB
- bootloader" and a "12MHz crystal" clock reference. For STM32F429
- boards use a "32KiB bootloader" and an "8MHz crystal". For STM32H723
- boards use a "128KiB bootloader" and a "25Mhz crystal".
+    TODO: Need to make this section readable
+
+This file contains common pin mappings for the BigTreeTech Octopus and Octopus Pro boards. To use this config, start by identifying the micro-controller on the board - it may be an STM32F446, STM32F429, or an STM32H723.  Select the appropriate micro-controller in "make menuconfig" and select "Enable low-level configuration options". For STM32F446 boards the firmware should be compiled with a "32KiB bootloader" and a "12MHz crystal" clock reference. For STM32F429 boards use a "32KiB bootloader" and an "8MHz crystal". For STM32H723 boards use a "128KiB bootloader" and a "25Mhz crystal".
 
 
 
