@@ -1,0 +1,3 @@
+# Boot the full config with the REAL beacon.py: every section must parse and every MCU must connect.
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict

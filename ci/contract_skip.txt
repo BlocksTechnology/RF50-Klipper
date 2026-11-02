@@ -1,0 +1,6 @@
+# BlocksScreen commands the RF50 config is NOT required to define. One per line: NAME-or-PREFIX* <reason>.
+# A trailing * matches every command the scanner reports with that prefix (MMU_* skips MMU_LOAD, MMU_HOME, ...).
+ABORT              manual-probe helper, only registered while PROBE_CALIBRATE / Z_ENDSTOP_CALIBRATE runs
+ACCEPT             manual-probe helper, only registered while PROBE_CALIBRATE / Z_ENDSTOP_CALIBRATE runs
+CHANGE_PRINTCORES  print core still in development (2026-11-02); drop this line once the printcore macros are on dev
+MMU_*              AMU not released (2026-11-02); required only by the future AMU variant job

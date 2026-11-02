@@ -1,0 +1,56 @@
+# Boot the RF50 config on the pinned Klipper fork in batch mode (no hardware), see ci/README.md.
+name: RF50 batch tests
+on:
+  push:
+    branches: [dev, Release-2.0, "feat/ci-*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  klippy-batch:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Contract test source: the BlocksScreen commands this config must define.
+      - uses: actions/checkout@v4
+        with:
+          repository: BlocksTechnology/BlocksScreen
+          ref: dev
+          path: .ci-bs
+          sparse-checkout: BlocksScreen
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.2"  # the RF50 runs exactly 3.11.2
+
+      - name: Install firmware toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+
+      # Dicts depend only on the Klipper pin, so a pins.env change is the only invalidation.
+      - uses: actions/cache@v4
+        with:
+          path: ci/.cache/dicts-built
+          key: rf50-dicts-${{ hashFiles('ci/pins.env') }}
+
+      - name: Bootstrap
+        run: ci/bootstrap.sh
+        env:
+          PYTHON: python
+
+      - name: Run tests
+        run: ci/run_tests.sh
+        env:
+          BS_DIR: ${{ github.workspace }}/.ci-bs/BlocksScreen
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rf50-batch-logs
+          path: |
+            ci/.cache/run/logs
+            ci/.cache/build-*.log
