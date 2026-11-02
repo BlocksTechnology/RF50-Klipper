@@ -2,40 +2,58 @@
 name: RF50 batch tests
 on:
   push:
-    branches: [dev, Release-2.0, "feat/ci-*"]
+    branches: [dev, Release-2.0]  # feature branches run via their PR, or workflow_dispatch before one exists
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   klippy-batch:
     runs-on: ubuntu-22.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          persist-credentials: false
 
       # Contract test source: the BlocksScreen commands this config must define.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
+          persist-credentials: false
           repository: BlocksTechnology/BlocksScreen
           ref: dev
           path: .ci-bs
           sparse-checkout: BlocksScreen
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
           python-version: "3.11.2"  # the RF50 runs exactly 3.11.2
 
-      - name: Install firmware toolchain
-        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
-
-      # Dicts depend only on the Klipper pin, so a pins.env change is the only invalidation.
-      - uses: actions/cache@v4
+      # Dicts and klippy requirements depend only on the Klipper pin, so a pins.env change is the only invalidation.
+      - id: dicts
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: ci/.cache/dicts-built
           key: rf50-dicts-${{ hashFiles('ci/pins.env') }}
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/.cache/pip
+          key: rf50-pip-${{ hashFiles('ci/pins.env') }}
+
+      # The ARM toolchain only builds dicts, so a dicts cache hit skips it.
+      - name: Install firmware toolchain
+        if: steps.dicts.outputs.cache-hit != 'true'
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+
+      - name: Shellcheck
+        run: shellcheck -x ci/*.sh  # preinstalled on the runner image
 
       - name: Bootstrap
         run: ci/bootstrap.sh
@@ -48,9 +66,10 @@ jobs:
           BS_DIR: ${{ github.workspace }}/.ci-bs/BlocksScreen
 
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: rf50-batch-logs
+          include-hidden-files: true  # both paths sit under ci/.cache, skipped by default since v4.4
           path: |
             ci/.cache/run/logs
             ci/.cache/build-*.log

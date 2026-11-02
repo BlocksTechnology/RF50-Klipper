@@ -16,13 +16,36 @@ Local shortcuts: `KLIPPER_SRC=<fork clone>` skips the clone, `CI_VENV=<venv>` re
 | Path | What |
 |---|---|
 | `tests/real/` | runs with the fork's real `beacon.py` (boot, strict-unknown guard, contract) |
-| `tests/stub/` | runs with `stubs/beacon.py`; motion needs it (real Beacon waits for samples batch mode never sends) |
-| `klipper_plugins/ci_batch_shims.py` | CI-only extra: unknown command = error, `CI_ASSERT_COMMANDS`, aht10/beacon connect no-ops |
-| `contract_skip.txt` | BlocksScreen commands the config may lack, each with a reason |
+| `tests/stub/` | runs with `stubs/beacon.py`; motion needs it (real Beacon waits for samples batch mode never sends): home/jog, sliced print, PAUSE/RESUME/CANCEL, PRINT_START refusing an unloaded machine |
+| `klipper_plugins/ci_batch_shims.py` | CI-only extra: unknown command = error, `CI_ASSERT_COMMANDS` (exact names), `CI_SET_FILAMENT PRESENT=0\|1` (all switch sensors), `CI_MMU_PRINT_SYNC ENABLE=0\|1`, batch EOF held until an SD print ends (fails unless it completes), aht10/beacon connect no-ops, absolute `log_file` |
+| `gcodes/` | `virtual_sdcard` root for `SDCARD_PRINT_FILE` tests: a real OrcaSlicer RF50 file and its STL (see Print fixture) |
+| `tools/orca_flatten.py` | flattens the Blocks Orca presets for the slicer CLI (fixture regeneration only) |
+| `contract_skip.txt` | BlocksScreen commands the config may lack, each with a reason; an entry matching nothing fails the run |
+| `contract_extra.txt` | names the scan cannot see: sends built at runtime, and `NAME_*=A,B` expansions for suffixed sends |
+| `fidelity-rf50-160.json` | live .160 MCU versions and constants; required input (beacon dict synthesis + fidelity report) |
 | `tools/fidelity.py` | CI dicts vs live .160 constants, report only |
-| `dicts/captured/<mcu>.dict` | real dicts from `rf50_capture.py dump`; replace the generic builds when present |
+| `dicts/captured/<mcu>.dict` | optional real dicts copied from a printer (none committed yet); replace the generic builds when present |
 
 Not covered yet: AMU variant (`MMU_*`, mmu MCU), print core (`CHANGE_PRINTCORES`, WIP), real MCU dicts (built
 from Klipper's generic test configs: 130 msgs vs 136-138 live, Toolhead PWM_MAX 32768 vs 257).
-A `# CI_EXPECT_LOG: text` line in a `.test` makes the runner also require that text in the log, so a
-SHOULD_FAIL test cannot pass for the wrong reason.
+Each `# CI_EXPECT_LOG: text` line in a `.test` makes the runner also require that text in the runtime log (config
+dump excluded), so a SHOULD_FAIL test cannot pass for the wrong reason.
+
+Contract: every literal command BlocksScreen emits must be a registered command name (exact match). The run prints
+`contract: dynamic` for sends it cannot read; cover each in `contract_extra.txt` or `contract_skip.txt`.
+Stale skips/expansions, unparseable sources and an implausibly small scan all fail the run.
+
+Print fixture: `gcodes/rf50_cube_pla.gcode` is a 15x15x1.2 mm cube sliced by OrcaSlicer 2.4.2 with the stock Blocks
+presets, so it carries the real start/end G-code (`PRINT_START`, `PRINT_END`). It prints through `virtual_sdcard`,
+the path Moonraker uses. Regenerate it after a preset change (the CLI does not resolve `inherits`, hence the flatten):
+
+```
+P=/opt/orca-slicer/resources/profiles/Blocks
+python3 tools/orca_flatten.py "$P" "BLOCKS RF50 0.4 nozzle" "0.20mm Standard 0.4 nozzle @Blocks_RF50" "Blocks Generic PLA" /tmp/orca
+orca-slicer --load-settings "/tmp/orca/machine.json;/tmp/orca/process.json" --load-filaments /tmp/orca/filament.json \
+  --arrange 1 --slice 0 --outputdir /tmp/orca-out gcodes/cube_15x15x1.2.stl && cp /tmp/orca-out/plate_1.gcode gcodes/rf50_cube_pla.gcode
+```
+
+The print test turns Happy Hare's in-print gear sync off (`CI_MMU_PRINT_SYNC ENABLE=0`). With it on, batch mode
+crashes in C (heap corruption in the step-generation path) once the gear follows the extruder. Field boxes run the
+same Klipper commit and the same sync without crashing, so this looks batch-only; the root cause is still open.

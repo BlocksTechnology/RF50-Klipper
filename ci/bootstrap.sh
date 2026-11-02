@@ -3,11 +3,15 @@
 # Env: KLIPPER_SRC=<local clone> skips the network clone; CI_VENV=<venv> reuses one; CI_CACHE overrides .cache.
 set -euo pipefail
 CI=$(cd "$(dirname "$0")" && pwd)
-# shellcheck source=pins.env
+# shellcheck source-path=SCRIPTDIR source=pins.env
 . "$CI/pins.env"
 C=${CI_CACHE:-$CI/.cache}
-mkdir -p "$C"
 log() { echo "bootstrap: $*" >&2; }
+# Subdirs of $C get rm -rf'd below: never adopt a non-empty CI_CACHE that bootstrap did not create.
+if [ -n "${CI_CACHE:-}" ] && [ -n "$(ls -A "$C" 2>/dev/null)" ] && [ ! -f "$C/.rf50-ci-cache" ]; then
+  log "refusing CI_CACHE=$C: not empty and not an RF50 CI cache"; exit 1
+fi
+mkdir -p "$C" && touch "$C/.rf50-ci-cache"
 
 # 1. Klipper source at the pin, exported pristine (git archive ignores any working-copy edits).
 SRC=${KLIPPER_SRC:-$C/src}
@@ -28,10 +32,14 @@ echo "$KLIPPER_REF" >"$C/klipper.ref"
 
 # 2. Venv: the fork's own klippy requirements, plus numpy which beacon.py imports.
 VENV=${CI_VENV:-$C/venv}
-if [ ! -x "$VENV/bin/python" ]; then
-  log "creating venv $VENV"
-  "$PYTHON" -m venv "$VENV"
-  "$VENV/bin/pip" install --quiet -r "$C/klipper-real/scripts/klippy-requirements.txt" numpy
+REQ=$C/klipper-real/scripts/klippy-requirements.txt
+want=$( (cat "$REQ"; echo numpy) | sha256sum | cut -d' ' -f1)
+[ -x "$VENV/bin/python" ] || { log "creating venv $VENV"; "$PYTHON" -m venv "$VENV"; }
+# Stamp written only after pip succeeds, so a changed requirements file or a half-done install re-runs pip.
+if [ "$(cat "$VENV/.rf50-ci-req" 2>/dev/null)" != "$want" ]; then
+  log "installing klippy requirements into $VENV"
+  "$VENV/bin/pip" install --quiet -r "$REQ" numpy
+  echo "$want" >"$VENV/.rf50-ci-req"
 fi
 "$VENV/bin/python" -c 'import sys; assert sys.version_info[:2] == (3, 11), sys.version' || {
   log "venv must be Python 3.11 (the RF50 runs 3.11.2)"; exit 1; }

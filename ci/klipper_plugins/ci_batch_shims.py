@@ -26,20 +26,77 @@ def _strict_unknown(orig_default):
 
 
 def _assert_commands(gcode):
-    """CI_ASSERT_COMMANDS CMDS=A,B,PREFIX_*: fail unless each name (or prefix) is registered; runs nothing."""
+    """CI_ASSERT_COMMANDS CMDS=A,B: fail unless each exact name is registered; runs nothing."""
 
     def handler(gcmd):
         names = [n.strip().upper() for n in gcmd.get("CMDS").split(",") if n.strip()]
+        if not names:
+            raise gcmd.error("CI: CI_ASSERT_COMMANDS got an empty CMDS list")
         have = gcode.ready_gcode_handlers
-        missing = [
-            n for n in names
-            if not (any(c.startswith(n[:-1]) for c in have) if n.endswith("*") else n in have)
-        ]
+        # Exact names only: a prefix match let AXIS_MAINTENANCE_FINISH_X stand in for a missing AXIS_MAINTENANCE_Y.
+        missing = [n for n in names if n not in have]
         if missing:
             raise gcmd.error("CI: commands not defined: %s" % ", ".join(missing))
         gcmd.respond_info("CI: %d commands defined" % len(names))
 
     return handler
+
+
+def _set_filament(printer):
+    """CI_SET_FILAMENT PRESENT=0|1: set every filament switch sensor (batch mode never reports pin states)."""
+
+    def handler(gcmd):
+        present = bool(gcmd.get_int("PRESENT", 1, minval=0, maxval=1))
+        now = printer.get_reactor().monotonic()
+        sensors = printer.lookup_objects("filament_switch_sensor")
+        if not sensors:
+            raise gcmd.error("CI: no filament_switch_sensor objects")
+        for _, sensor in sensors:
+            sensor.runout_helper.note_filament_present(now, present)
+        gcmd.respond_info("CI: %d filament sensors present=%d" % (len(sensors), present))
+
+    return handler
+
+
+def _mmu_print_sync(printer):
+    """CI_MMU_PRINT_SYNC ENABLE=0|1: set HH's in-print gear sync; MMU_TEST_CONFIG cannot, always_gripped forces 1."""
+
+    def handler(gcmd):
+        mmu = printer.lookup_object("mmu", None)
+        if mmu is None:
+            raise gcmd.error("CI: no [mmu] object")
+        mmu.sync_to_extruder = gcmd.get_int("ENABLE", minval=0, maxval=1)
+        gcmd.respond_info("CI: mmu sync_to_extruder=%d" % mmu.sync_to_extruder)
+
+    return handler
+
+
+def _hold_exit_for_sd_print(printer, gcode):
+    """Batch EOF exits at once, cutting an SD print short: hold 'exit' until it ends, fail unless complete."""
+    orig = gcode.request_restart
+    reactor = printer.get_reactor()
+
+    def request_restart(result):
+        sd = printer.lookup_object("virtual_sdcard", None)
+        stats = printer.lookup_object("print_stats", None)
+        if result != "exit" or sd is None or stats is None:
+            return orig(result)
+        reactor.register_timer(lambda et: check(et, sd, stats), reactor.NOW)
+
+    def check(eventtime, sd, stats):
+        if sd.is_active():
+            return eventtime + 0.1
+        status = stats.get_status(eventtime)
+        if status["state"] in ("standby", "complete"):
+            if status["state"] == "complete":
+                logging.info("CI: SD print complete: %s", status["filename"])
+            orig("exit")
+        else:
+            logging.error("CI: SD print %s ended %s: %s", status["filename"], status["state"], status["message"])
+            orig("error_exit")
+        return reactor.NEVER
+
+    gcode.request_restart = request_restart
 
 
 def _quiet_real_beacon():
@@ -65,4 +122,7 @@ def load_config(config):
     gcode = config.get_printer().lookup_object("gcode")
     gcode.cmd_default = _strict_unknown(gcode.cmd_default)
     gcode.register_command("CI_ASSERT_COMMANDS", _assert_commands(gcode))
+    gcode.register_command("CI_SET_FILAMENT", _set_filament(config.get_printer()))
+    gcode.register_command("CI_MMU_PRINT_SYNC", _mmu_print_sync(config.get_printer()))
+    _hold_exit_for_sd_print(config.get_printer(), gcode)
     return object()

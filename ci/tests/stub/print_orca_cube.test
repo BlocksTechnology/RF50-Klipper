@@ -1,0 +1,10 @@
+# Print a real OrcaSlicer RF50 file through virtual_sdcard, the path Moonraker takes (fixture recipe in ci/README.md).
+# CI_EXPECT_LOG: Mesh Bed Leveling Complete
+# CI_EXPECT_LOG: Finished SD card print
+# CI_EXPECT_LOG: CI: SD print complete: rf50_cube_pla.gcode
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict
+CI_SET_FILAMENT PRESENT=1
+# Gear sync off: batch mode crashes in C (heap corruption) once HH syncs the gear mid-print; field boxes, same commit, do not.
+CI_MMU_PRINT_SYNC ENABLE=0
+SDCARD_PRINT_FILE FILENAME=rf50_cube_pla.gcode

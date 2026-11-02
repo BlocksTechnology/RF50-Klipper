@@ -1,11 +1,25 @@
 """Report how far the CI dicts drift from the live RF50 MCUs (warnings only, never fails the run)."""
 
 import json
+import re
 import sys
 from pathlib import Path
 
 # Constants that only differ because CI dicts come from Klipper's generic test configs, not real firmware.
 EXPECTED_DRIFT = {"RESERVE_PINS_CAN", "RESERVE_PINS_USB", "CANBUS_FREQUENCY", "SERIAL_BAUD"}
+# Klipper's build appends -<date>_<time>-<host>; live mcu_version has it stripped.
+BUILD_SUFFIX = re.compile(r"-\d{8}_\d{6}-\S+$")
+# A build without tags reports a bare short hash; one with tags reports git describe (...-g<hash>).
+DESCRIBE_HASH = re.compile(r"(?:^|-g)([0-9a-f]{7,40})$")
+
+
+def same_build(ci: str, live: str) -> bool:
+    """True when both version strings name the same commit, whatever their describe format."""
+    ci = BUILD_SUFFIX.sub("", ci)
+    a, b = DESCRIBE_HASH.search(ci), DESCRIBE_HASH.search(live)
+    if a and b:
+        return a[1].startswith(b[1]) or b[1].startswith(a[1])
+    return ci == live
 
 
 def main(dict_dir: str, fidelity_path: str) -> None:
@@ -24,7 +38,7 @@ def main(dict_dir: str, fidelity_path: str) -> None:
         diff = sorted(
             k for k in live_cfg if str(cfg.get(k)) != str(live_cfg[k]) and k not in EXPECTED_DRIFT
         )
-        same = "same" if got.get("version") == want["mcu_version"] else "DIFF"
+        same = "same" if same_build(str(got.get("version")), want["mcu_version"]) else "DIFF"
         sys.stdout.write(
             f"  {name:9} version {same} (ci {got.get('version')} / live {want['mcu_version']}), "
             f"msgs {len(got.get('commands', {})) + len(got.get('responses', {}))}, "
