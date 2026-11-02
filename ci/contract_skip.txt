@@ -4,3 +4,5 @@ ABORT              manual-probe helper, only registered while PROBE_CALIBRATE / 
 ACCEPT             manual-probe helper, only registered while PROBE_CALIBRATE / Z_ENDSTOP_CALIBRATE runs
 CHANGE_PRINTCORES  print core still in development (2026-11-02); drop this line once the printcore macros are on dev
 MMU_*              AMU not released (2026-11-02); required only by the future AMU variant job
+LOAD_FILAMENT    [load_filament] + macro fully commented out in config/load_filament.cfg; BlocksScreen basicFilamentPanel.py:225 sends it (open gap 2026-11-02)
+UNLOAD_FILAMENT  [unload_filament] + macro fully commented out in config/unload_filament.cfg; BlocksScreen basicFilamentPanel.py:259 sends it (open gap 2026-11-02)
