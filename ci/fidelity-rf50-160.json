@@ -1,0 +1,133 @@
+{
+ "mcus": {
+  "mcu": {
+   "mcu_build_versions": "gcc: (15:12.2.rel1-1) 12.2.1 20221205 binutils: (2.40-2+18+b1) 2.40",
+   "mcu_constants": {
+    "ADC_MAX": 4095,
+    "BUS_PINS_i2c1_PB6_PB7": "PB6,PB7",
+    "BUS_PINS_i2c1_PB8_PB9": "PB8,PB9",
+    "BUS_PINS_i2c2_PB10_PB11": "PB10,PB11",
+    "BUS_PINS_i2c3_PA8_PC9": "PA8,PC9",
+    "BUS_PINS_spi1": "PA6,PA7,PA5",
+    "BUS_PINS_spi1a": "PB4,PB5,PB3",
+    "BUS_PINS_spi2": "PB14,PB15,PB13",
+    "BUS_PINS_spi2a": "PC2,PC3,PB10",
+    "BUS_PINS_spi2b": "PI2,PI3,PI1",
+    "BUS_PINS_spi3a": "PC11,PC12,PC10",
+    "BUS_PINS_spi4": "PE13,PE14,PE12",
+    "BUS_PINS_spi5": "PF8,PF9,PF7",
+    "BUS_PINS_spi5a": "PH7,PF11,PH6",
+    "BUS_PINS_spi6": "PG12,PG14,PG13",
+    "CANBUS_BRIDGE": 1,
+    "CLOCK_FREQ": 520000000,
+    "MCU": "stm32h723xx",
+    "PWM_MAX": 32768,
+    "RECEIVE_WINDOW": 192,
+    "RESERVE_PINS_CAN": "PD0,PD1",
+    "RESERVE_PINS_USB": "PA11,PA12",
+    "RESERVE_PINS_crystal": "PH0,PH1",
+    "STATS_SUMSQ_BASE": 256,
+    "STEPPER_STEP_BOTH_EDGE": 1
+   },
+   "mcu_version": "v0.13.0-bl.1-225-g14edee70"
+  },
+  "mcu Toolhead": {
+   "mcu_build_versions": "gcc: (15:12.2.rel1-1) 12.2.1 20221205 binutils: (2.40-2+18+b1) 2.40",
+   "mcu_constants": {
+    "ADC_MAX": 4095,
+    "BUS_PINS_i2c1_PA9_PA10": "PA9,PA10",
+    "BUS_PINS_i2c1_PB6_PB7": "PB6,PB7",
+    "BUS_PINS_i2c1_PB8_PB9": "PB8,PB9",
+    "BUS_PINS_i2c2_PB10_PB11": "PB10,PB11",
+    "BUS_PINS_i2c2_PB13_PB14": "PB13,PB14",
+    "BUS_PINS_i2c3_PB3_PB4": "PB3,PB4",
+    "BUS_PINS_i2c3_PC0_PC1": "PC0,PC1",
+    "BUS_PINS_spi1": "PA6,PA7,PA5",
+    "BUS_PINS_spi1a": "PB4,PB5,PB3",
+    "BUS_PINS_spi2": "PB14,PB15,PB13",
+    "BUS_PINS_spi2_PB2_PB11_PB10": "PB2,PB11,PB10",
+    "BUS_PINS_spi2a": "PC2,PC3,PB10",
+    "BUS_PINS_spi3": "PB4,PB5,PB3",
+    "CANBUS_FREQUENCY": 1000000,
+    "CLOCK_FREQ": 64000000,
+    "MCU": "stm32g0b1xx",
+    "PWM_MAX": 257,
+    "RECEIVE_WINDOW": 192,
+    "RESERVE_PINS_CAN": "PB0,PB1",
+    "RESERVE_PINS_crystal": "PF0,PF1",
+    "STATS_SUMSQ_BASE": 256,
+    "STEPPER_OPTIMIZED_EDGE": 8,
+    "STEPPER_STEP_BOTH_EDGE": 1
+   },
+   "mcu_version": "v0.13.0-154-g9346ad191"
+  },
+  "mcu beacon": {
+   "mcu_build_versions": "",
+   "mcu_constants": {
+    "ADC_MAX": 4095,
+    "BEACON_ACCEL_BITS": 12,
+    "BEACON_ACCEL_SCALE_16G": "7.81",
+    "BEACON_ACCEL_SCALE_2G": "0.98",
+    "BEACON_ACCEL_SCALE_4G": "1.95",
+    "BEACON_ACCEL_SCALE_8G": "3.91",
+    "BEACON_ADC_SMOOTH_COUNT": 16,
+    "BEACON_HAS_ACCEL": 1,
+    "BEACON_REV": "H",
+    "CLOCK_FREQ": 32000000,
+    "MCU": "beacon",
+    "STATS_SUMSQ_BASE": 256
+   },
+   "mcu_version": "Beacon 2.1.0"
+  },
+  "mcu mmu": {
+   "mcu_build_versions": "gcc: (15:12.2.rel1-1) 12.2.1 20221205 binutils: (2.40-2+18+b1) 2.40",
+   "mcu_constants": {
+    "ADC_MAX": 4095,
+    "BUS_PINS_i2c1": "PB6,PB7",
+    "BUS_PINS_i2c1a": "PB8,PB9",
+    "BUS_PINS_i2c2": "PB10,PB11",
+    "BUS_PINS_i2c3": "PA8,PC9",
+    "BUS_PINS_sdio": "PC12,PD2,PC8,PC9,PC10,PC11",
+    "BUS_PINS_spi1": "PA6,PA7,PA5",
+    "BUS_PINS_spi1_PA6_PA7_PA5": "PA6,PA7,PA5",
+    "BUS_PINS_spi1_PB4_PB5_PB3": "PB4,PB5,PB3",
+    "BUS_PINS_spi1a": "PB4,PB5,PB3",
+    "BUS_PINS_spi2": "PB14,PB15,PB13",
+    "BUS_PINS_spi2_PB14_PB15_PB13": "PB14,PB15,PB13",
+    "BUS_PINS_spi2_PC2_PC3_PB10": "PC2,PC3,PB10",
+    "BUS_PINS_spi2_PI2_PI3_PI1": "PI2,PI3,PI1",
+    "BUS_PINS_spi2a": "PC2,PC3,PB10",
+    "BUS_PINS_spi2b": "PI2,PI3,PI1",
+    "BUS_PINS_spi3": "PB4,PB5,PB3",
+    "BUS_PINS_spi3_PB4_PB5_PB3": "PB4,PB5,PB3",
+    "BUS_PINS_spi3_PC11_PC12_PC10": "PC11,PC12,PC10",
+    "BUS_PINS_spi3a": "PC11,PC12,PC10",
+    "BUS_PINS_spi4": "PE13,PE14,PE12",
+    "BUS_PINS_spi4_PE13_PE14_PE12": "PE13,PE14,PE12",
+    "CLOCK_FREQ": 180000000,
+    "MCU": "stm32f446xx",
+    "PWM_MAX": 32768,
+    "RESERVE_PINS_USB": "PA11,PA12",
+    "RESERVE_PINS_crystal": "PH0,PH1",
+    "STATS_SUMSQ_BASE": 256,
+    "STEPPER_OPTIMIZED_EDGE": 23,
+    "STEPPER_STEP_BOTH_EDGE": 1
+   },
+   "mcu_version": "v0.13.0-bl.1-225-g14edee706-dirty-20261013_154845-LAP-005"
+  },
+  "mcu pi": {
+   "mcu_build_versions": "gcc: (Debian 12.2.0-14+deb12u1) 12.2.0 binutils: (GNU Binutils for Debian) 2.40",
+   "mcu_constants": {
+    "ADC_MAX": 4095,
+    "CLOCK_FREQ": 50000000,
+    "MCU": "linux",
+    "PCA9685_MAX": 4096,
+    "PWM_MAX": 32768,
+    "STATS_SUMSQ_BASE": 256,
+    "STEPPER_STEP_BOTH_EDGE": 1
+   },
+   "mcu_version": "v0.13.0-bl.1-1-gd61bf239"
+  }
+ },
+ "source": "BLOCKS-RF50-4af2bbf696874c09 (.160) Moonraker query 2026-11-02"
+}

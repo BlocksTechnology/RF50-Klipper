@@ -1,0 +1,6 @@
+# Strict-unknown guard: an undefined command must fail the run (plain batch mode exits 0).
+# CI_EXPECT_LOG: Unknown command:"CI_NOT_A_REAL_COMMAND"
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict
+SHOULD_FAIL
+CI_NOT_A_REAL_COMMAND
