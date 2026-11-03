@@ -24,10 +24,17 @@ Local shortcuts: `KLIPPER_SRC=<fork clone>` skips the clone, `CI_VENV=<venv>` re
 | `contract_extra.txt` | names the scan cannot see: sends built at runtime, and `NAME_*=A,B` expansions for suffixed sends |
 | `fidelity-rf50-160.json` | live .160 MCU versions and constants; required input (beacon dict synthesis + fidelity report) |
 | `tools/fidelity.py` | CI dicts vs live .160 constants, report only |
-| `dicts/captured/<mcu>.dict` | optional real dicts copied from a printer (none committed yet); replace the generic builds when present |
+| `dicts/captured/<mcu>.dict` | .160-exact dicts (copied or rebuilt from the live commits), used instead of the generic builds (see MCU dicts) |
 
-Not covered yet: AMU variant (`MMU_*`, mmu MCU), print core (`CHANGE_PRINTCORES`, WIP), real MCU dicts (built
-from Klipper's generic test configs: 130 msgs vs 136-138 live, Toolhead PWM_MAX 32768 vs 257).
+Not covered yet: AMU variant (`MMU_*`, mmu MCU), print core (`CHANGE_PRINTCORES`, WIP).
+
+MCU dicts (2026-11-03): `pi.dict` is .160's own `~/klipper/out/klipper.dict` (its build hash equals the running
+`klipper_mcu`). `mcu.dict` (fork 14edee70) and `Toolhead.dict` (upstream 9346ad191) are rebuilt from those commits
+with the board options below; message count (137/136, as klippy.log prints it) and every constant match the live
+MCUs, and `version`/`build_versions` are set to the live strings. Beacon stays synthesised (closed firmware).
+- mcu, Octopus Pro H723: `STM32H723`, 128KiB bootloader, 25 MHz crystal, USB-to-CAN bridge (USB PA11/PA12, CAN PD0/PD1), 1 Mbit
+- Toolhead, EBB36 G0B1: `STM32G0B1`, 8KiB bootloader, 8 MHz crystal, CAN PB0/PB1, 1 Mbit
+
 Each `# CI_EXPECT_LOG: text` line in a `.test` makes the runner also require that text in the runtime log (config
 dump excluded), so a SHOULD_FAIL test cannot pass for the wrong reason.
 

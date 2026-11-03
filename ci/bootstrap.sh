@@ -61,7 +61,7 @@ build_dict() {
   cp "$fw/out/klipper.dict" "$BUILT/$target.dict"
 }
 
-# Captured dicts (dicts/captured/<mcu>.dict, from rf50_capture.py dump) beat built ones.
+# .160-exact dicts (dicts/captured/<mcu>.dict, see README "MCU dicts") beat built ones.
 D=$C/dicts
 rm -rf "$D" && mkdir -p "$D"
 for mcu in mcu Toolhead pi; do

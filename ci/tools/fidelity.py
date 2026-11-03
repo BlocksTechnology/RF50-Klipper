@@ -22,6 +22,11 @@ def same_build(ci: str, live: str) -> bool:
     return ci == live
 
 
+def klippy_count(d: dict) -> int:
+    """Message count as klippy.log 'Loaded MCU ... N commands' prints it: msgproto adds 2 identify messages."""
+    return sum(len(d.get(s, {})) for s in ("commands", "responses", "output")) + 2
+
+
 def main(dict_dir: str, fidelity_path: str) -> None:
     """Compare version and constants of dict_dir/<name>.dict against the 'mcu <name>' entries."""
     live = json.loads(Path(fidelity_path).read_text())
@@ -41,7 +46,7 @@ def main(dict_dir: str, fidelity_path: str) -> None:
         same = "same" if same_build(str(got.get("version")), want["mcu_version"]) else "DIFF"
         sys.stdout.write(
             f"  {name:9} version {same} (ci {got.get('version')} / live {want['mcu_version']}), "
-            f"msgs {len(got.get('commands', {})) + len(got.get('responses', {}))}, "
+            f"msgs {klippy_count(got)}, "
             f"{len(diff)} constant diffs\n"
         )
         for k in diff:
