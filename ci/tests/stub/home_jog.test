@@ -1,0 +1,11 @@
+# Home and jog the way the BlocksScreen axis page does (stub beacon, z endstop on Toolhead:PB9).
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict
+G28
+G90
+G0 X100 Y100 Z10 F6000
+G91
+G0 X10 Y-10 Z1 F3000
+G90
+M400
+M84

@@ -1,0 +1,4 @@
+.cache/
+__pycache__/
+# The root .gitignore drops *.json; the live .160 constants are a tracked input.
+!fidelity-rf50-160.json

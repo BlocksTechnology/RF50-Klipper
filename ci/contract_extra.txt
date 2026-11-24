@@ -1,0 +1,11 @@
+# Commands BlocksScreen sends that the static scan cannot see (built at runtime), audited by hand against BlocksScreen@dev a8ee342.
+# NAME <reason> = always required. PREFIX_*=A,B,C <reason> = the real names behind a send with a runtime suffix.
+# Not listed on purpose: M106/M107 (only with a [fan] section, RF50 fans are fan_generic), Z_OFFSET_APPLY_ENDSTOP (no-probe machines),
+# TESTZ / PROBE_CALIBRATE / Z_ENDSTOP_CALIBRATE / PROBE_EDDY_CURRENT_CALIBRATE (BlocksScreen checks they exist before sending).
+SHAPER_CALIBRATE        inputshaperPage.py:201/219 handle_is(gcode), utilitiesTab.py:138
+SET_LED                 ledsPage.py:163 LedState.get_gcode
+SET_FAN_SPEED           lib/utils/gcode.py fan_speed_gcode (fansPage.py:106, tunePage.py:118), routinePage.py fan_steps
+TURN_OFF_HEATERS        routinePage.py:250 heater-step cleanup
+Z_OFFSET_APPLY_PROBE    printTab.py:403 _z_apply_command when a probe is configured (RF50 = Beacon)
+AXIS_MAINTENANCE_*=AXIS_MAINTENANCE_X,AXIS_MAINTENANCE_Y,AXIS_MAINTENANCE_Z                         axisMaintPage.py:57 button text x/y/z
+AXIS_MAINTENANCE_FINISH_*=AXIS_MAINTENANCE_FINISH_X,AXIS_MAINTENANCE_FINISH_Y,AXIS_MAINTENANCE_FINISH_Z  axisMaintPage.py:37 button text x/y/z

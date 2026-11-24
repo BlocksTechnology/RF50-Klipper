@@ -1,0 +1,19 @@
+# RESPOND MSG is never logged, so the action: lines pin each step. The BlocksScreen print-control buttons: PAUSE parks on the bucket, RESUME re-heats, purges, wipes, CANCEL_PRINT parks.
+# CI_EXPECT_LOG: Parking toolhead on bucket
+# CI_EXPECT_LOG: action:paused
+# CI_EXPECT_LOG: action:resumed
+# CI_EXPECT_LOG: action:cancel
+# CI_EXPECT_LOG: Raising z height by 15
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict
+CI_SET_FILAMENT PRESENT=1
+G28
+M109 S210
+G90
+G1 X250 Y250 Z5 F6000
+M83
+G1 X260 E2 F1800
+PAUSE
+RESUME
+G1 X250 E2 F1800
+CANCEL_PRINT

@@ -1,0 +1,7 @@
+# PRINT_START must refuse to heat or move when the toolhead and pre-gate sensors report no filament.
+# CI_EXPECT_LOG: Machine is unloaded, please load the machine
+CONFIG ../../ci.cfg
+DICTIONARY mcu.dict Toolhead=Toolhead.dict pi=pi.dict beacon=beacon.dict
+SHOULD_FAIL
+CI_SET_FILAMENT PRESENT=0
+PRINT_START EXTRUDER=210 BED=50
